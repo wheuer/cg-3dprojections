@@ -1,0 +1,29 @@
+{
+    "view": {
+        "type": "parallel",
+        "vrp": [0, 0, 0],
+        "vpn": [0, 0, 1],
+        "vup": [0, 1, 0],
+        "prp": [0, 0, 100],
+        "clip": [-1, 17, -1, 17, 1, -50]
+    },
+    "models": [
+        {
+            "type": "cube",
+            "center": [4, 4, -10],
+            "width": 8,
+            "height": 8
+        },
+        {
+            "type": "cylinder",
+            "center": [12, 10, -49],
+            "radius": 1.5,
+            "height": 5,
+            "sides": 12,
+            "animation": {
+                "axis": "y",
+                "rps": 0.5
+            }
+        }
+    ]
+}
