@@ -294,8 +294,8 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
     
 }
 
-function mat4x4mper(near) {
-    // convert perspective canonical view volume into the parallel one
+function mat4x4mper() {
+    // perspective projection from canonical view volume to far clip plane
     var result = new Matrix(4, 4);
     
     return result;
