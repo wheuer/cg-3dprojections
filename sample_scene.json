@@ -1,18 +1,18 @@
 {
     "view": {
         "type": "parallel",
-        "vrp": [0, 0, 0],
-        "vpn": [0, 0, 1],
+        "prp": [0, 0, 10],
+        "srp": [0, 0, 0],
         "vup": [0, 1, 0],
-        "prp": [0, 0, 100],
-        "clip": [-1, 17, -1, 17, 1, -50]
+        "clip": [-4, 20, -1, 17, 5, 75]
     },
     "models": [
         {
             "type": "cube",
             "center": [4, 4, -10],
             "width": 8,
-            "height": 8
+            "height": 8,
+            "depth": 8
         },
         {
             "type": "cylinder",

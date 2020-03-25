@@ -7,7 +7,8 @@ class Matrix {
         for (i = 0; i < this.rows; i++) {
             this.data.push([]);
             for (j = 0; j < this.columns; j++) {
-                this.data[i].push(0);
+                if (i === j) this.data[i].push(1);
+                else         this.data[i].push(0);
             }
         }
     }
@@ -64,20 +65,32 @@ class Matrix {
         }
         return result;
     }
+
+    // Float32Array in column major order (for OpenGL)
+    rawArray() {
+        var flat = [];
+        var i, j;
+        for (j = 0; j < this.columns; j++) {
+            for (i = 0; i < this.rows; i++) {
+                flat.push(this.data[i][j])
+            }
+        }
+        return new Float32Array(flat);
+    }
 }
 
-Matrix.multiply = function(...args) {
+Matrix.multiply = function(matrices) {
     var i;
     var result = null;
     // ensure at least 2 matrices
-    if (args.length >= 2 && args.every((item) => {return item instanceof Matrix;})) {
-        result = args[0];
+    if (matrices.length >= 2 && matrices.every((item) => {return item instanceof Matrix;})) {
+        result = matrices[0];
         i = 1;
-        while (result !== null && i < args.length) {
-            result = result.mult(args[i]);
+        while (result !== null && i < matrices.length) {
+            result = result.mult(matrices[i]);
             i++;
         }
-        if (args[args.length - 1] instanceof Vector) {
+        if (matrices[matrices.length - 1] instanceof Vector) {
             result = new Vector(result);
         }
     }
@@ -227,88 +240,4 @@ class Vector extends Matrix {
         }
         return result;
     }
-}
-
-
-
-function mat4x4identity() {
-    var result = new Matrix(4, 4);
-    
-    return result;
-}
-
-function mat4x4translate(tx, ty, tz) {
-    var result = new Matrix(4, 4);
-    
-    return result;
-}
-
-function mat4x4scale(sx, sy, sz) {
-    var result = new Matrix(4, 4);
-    
-    return result;
-}
-
-function mat4x4rotatex(theta) {
-    var result = new Matrix(4, 4);
-    
-    return result;
-}
-
-function mat4x4rotatey(theta) {
-    var result = new Matrix(4, 4);
-    
-    return result;
-}
-
-function mat4x4rotatez(theta) {
-    var result = new Matrix(4, 4);
-    
-    return result;
-}
-
-function mat4x4shearxy(shx, shy) {
-    var result = new Matrix(4, 4);
-    
-    return result;
-}
-
-function mat4x4parallel(vrp, vpn, vup, prp, clip) {
-    // 1. translate VRP to the origin
-    // 2. rotate VRC such that n-axis (VPN) becomes the z-axis, 
-    //    u-axis becomes the x-axis, and v-axis becomes the y-axis
-    // 3. shear such that the DOP becomes parallel to the z-axis
-    // 4. translate and scale into canonical view volume
-    //    (x = [-1,1], y = [-1,1], z = [0,-1])
-    
-}
-
-function mat4x4perspective(vrp, vpn, vup, prp, clip) {
-    // 1. translate VRP to the origin
-    // 2. rotate VRC such that n-axis (VPN) becomes the z-axis, 
-    //    u-axis becomes the x-axis, and v-axis becomes the y-axis
-    // 3. translate PRP to the origin
-    // 4. shear such that the center line of the view volume becomes the z-axis
-    // 5. scale into canonical view volume (truncated pyramid)
-    //    (x = [z,-z], y = [z,-z], z = [-z_min,-1])
-    
-}
-
-function mat4x4mper() {
-    // perspective projection from canonical view volume to far clip plane
-    var result = new Matrix(4, 4);
-    
-    return result;
-}
-
-function Vector3(x, y, z) {
-    var result = new Vector(3);
-    result.values = [x, y, z];
-    return result;
-}
-
-function Vector4(x, y, z, w) {
-    var result = new Vector(4);
-    result.values = [x, y, z, w];
-    return result;
 }

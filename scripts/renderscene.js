@@ -1,6 +1,7 @@
 var view;
 var ctx;
 var scene;
+var start_time;
 
 // Initialization function - called when web page loads
 function Init() {
@@ -16,11 +17,10 @@ function Init() {
     scene = {
         view: {
             type: 'perspective',
-            vrp: Vector3(20, 0, -30),
-            vpn: Vector3(1, 0, 1),
+            prp: Vector3(44, 20, -16),
+            srp: Vector3(20, 20, -40),
             vup: Vector3(0, 1, 0),
-            prp: Vector3(14, 20, 26),
-            clip: [-20, 20, -4, 36, 1, -50]
+            clip: [-19, 5, -10, 8, 12, 100]
         },
         models: [
             {
@@ -45,7 +45,8 @@ function Init() {
                     [2, 7],
                     [3, 8],
                     [4, 9]
-                ]
+                ],
+                matrix: new Matrix(4, 4)
             }
         ]
     };
@@ -53,10 +54,29 @@ function Init() {
     // event handler for pressing arrow keys
     document.addEventListener('keydown', OnKeyDown, false);
     
-    DrawScene();
+    // start animation loop
+    start_time = performance.now(); // current timestamp in milliseconds
+    window.requestAnimationFrame(Animate);
 }
 
-// Main drawing code here! Use information contained in variable `scene`
+// Animation loop - repeatedly calls rendering code
+function Animate(timestamp) {
+    // step 1: calculate time (time since start) 
+    // step 2: transform models based on time
+    // step 3: draw scene
+    // step 4: request next animation frame (recursively calling same function)
+
+
+    var time = timestamp - start_time;
+
+    // ... step 2
+
+    DrawScene();
+
+    window.requestAnimationFrame(Animate);
+}
+
+// Main drawing code - use information contained in variable `scene`
 function DrawScene() {
     console.log(scene);
 }
@@ -70,10 +90,9 @@ function LoadNewScene() {
     var reader = new FileReader();
     reader.onload = (event) => {
         scene = JSON.parse(event.target.result);
-        scene.view.vrp = Vector3(scene.view.vrp[0], scene.view.vrp[1], scene.view.vrp[2]);
-        scene.view.vpn = Vector3(scene.view.vpn[0], scene.view.vpn[1], scene.view.vpn[2]);
-        scene.view.vup = Vector3(scene.view.vup[0], scene.view.vup[1], scene.view.vup[2]);
         scene.view.prp = Vector3(scene.view.prp[0], scene.view.prp[1], scene.view.prp[2]);
+        scene.view.srp = Vector3(scene.view.srp[0], scene.view.srp[1], scene.view.srp[2]);
+        scene.view.vup = Vector3(scene.view.vup[0], scene.view.vup[1], scene.view.vup[2]);
 
         for (let i = 0; i < scene.models.length; i++) {
             if (scene.models[i].type === 'generic') {
@@ -90,9 +109,8 @@ function LoadNewScene() {
                                                  scene.models[i].center[2],
                                                  1);
             }
+            scene.models[i].matrix = new Matrix(4, 4);
         }
-
-        DrawScene();
     };
     reader.readAsText(scene_file.files[0], "UTF-8");
 }
