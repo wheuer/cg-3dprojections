@@ -11,8 +11,8 @@ function Mat4x4Parallel(mat4x4, prp, srp, vup, clip) {
     // mat4x4.values = transform.values;
 }
 
-// set values of mat4x4 to the parallel projection / view matrix
-function Mat4x4Projection(mat4x4, prp, srp, vup, clip) {
+// set values of mat4x4 to the perspective projection / view matrix
+function Mat4x4Perspective(mat4x4, prp, srp, vup, clip) {
     // 1. translate PRP to origin
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
     // 3. shear such that CW is on the z-axis
