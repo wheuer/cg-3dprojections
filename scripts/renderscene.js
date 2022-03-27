@@ -1,12 +1,12 @@
-var view;
-var ctx;
-var scene;
-var start_time;
+let view;
+let ctx;
+let scene;
+let start_time;
 
 // Initialization function - called when web page loads
-function Init() {
-    var w = 800;
-    var h = 600;
+function init() {
+    let w = 800;
+    let h = 600;
     view = document.getElementById('view');
     view.width = w;
     view.height = h;
@@ -52,15 +52,15 @@ function Init() {
     };
 
     // event handler for pressing arrow keys
-    document.addEventListener('keydown', OnKeyDown, false);
+    document.addEventListener('keydown', onKeyDown, false);
     
     // start animation loop
     start_time = performance.now(); // current timestamp in milliseconds
-    window.requestAnimationFrame(Animate);
+    window.requestAnimationFrame(animate);
 }
 
 // Animation loop - repeatedly calls rendering code
-function Animate(timestamp) {
+function animate(timestamp) {
     // step 1: calculate time (time since start) 
     // step 2: transform models based on time
     // step 3: draw scene
@@ -71,18 +71,46 @@ function Animate(timestamp) {
 
     // ... step 2
 
-    DrawScene();
+    drawScene();
 
-    window.requestAnimationFrame(Animate);
+    window.requestAnimationFrame(animate);
 }
 
 // Main drawing code - use information contained in variable `scene`
-function DrawScene() {
+function drawScene() {
     console.log(scene);
 }
 
+// Called when user presses a key on the keyboard down 
+function onKeyDown(event) {
+    switch (event.keyCode) {
+        case 37: // LEFT Arrow
+            console.log("left");
+            break;
+        case 39: // RIGHT Arrow
+            console.log("right");
+            break;
+        case 65: // A key
+            console.log("A");
+            break;
+        case 68: // D key
+            console.log("D");
+            break;
+        case 83: // S key
+            console.log("S");
+            break;
+        case 87: // W key
+            console.log("W");
+            break;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
+// No need to edit functions beyond this point
+///////////////////////////////////////////////////////////////////////////
+
 // Called when user selects a new scene JSON file
-function LoadNewScene() {
+function loadNewScene() {
     var scene_file = document.getElementById('scene_file');
 
     console.log(scene_file.files[0]);
@@ -112,29 +140,11 @@ function LoadNewScene() {
             scene.models[i].matrix = new Matrix(4, 4);
         }
     };
-    reader.readAsText(scene_file.files[0], "UTF-8");
-}
-
-// Called when user presses a key on the keyboard down 
-function OnKeyDown(event) {
-    switch (event.keyCode) {
-        case 37: // LEFT Arrow
-            console.log("left");
-            break;
-        case 38: // UP Arrow
-            console.log("up");
-            break;
-        case 39: // RIGHT Arrow
-            console.log("right");
-            break;
-        case 40: // DOWN Arrow
-            console.log("down");
-            break;
-    }
+    reader.readAsText(scene_file.files[0], 'UTF-8');
 }
 
 // Draw black 2D line with red endpoints 
-function DrawLine(x1, y1, x2, y2) {
+function drawLine(x1, y1, x2, y2) {
     ctx.strokeStyle = '#000000';
     ctx.beginPath();
     ctx.moveTo(x1, y1);
