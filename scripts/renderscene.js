@@ -3,6 +3,14 @@ let ctx;
 let scene;
 let start_time;
 
+const LEFT =   32; // binary 100000
+const RIGHT =  16; // binary 010000
+const BOTTOM = 8;  // binary 001000
+const TOP =    4;  // binary 000100
+const FAR =    2;  // binary 000010
+const NEAR =   1;  // binary 000001
+const FLOAT_EPSILON = 0.000001;
+
 // Initialization function - called when web page loads
 function init() {
     let w = 800;
@@ -78,6 +86,87 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     console.log(scene);
+    
+    // TODO: implement drawing here!
+    // For each model, for each edge
+    //  * transform to canonical view volume
+    //  * clip in 3D
+    //  * project to 2D
+    //  * draw line
+}
+
+// Get outcode for vertex (parallel view volume)
+function outcodeParallel(vertex) {
+    let outcode = 0;
+    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
+        outcode += LEFT;
+    }
+    else if (vertex.x > (1.0 + FLOAT_EPSILON)) {
+        outcode += RIGHT;
+    }
+    if (vertex.y < (-1.0 - FLOAT_EPSILON)) {
+        outcode += BOTTOM;
+    }
+    else if (vertex.y > (1.0 + FLOAT_EPSILON)) {
+        outcode += TOP;
+    }
+    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
+        outcode += FAR;
+    }
+    else if (vertex.x > (0.0 + FLOAT_EPSILON)) {
+        outcode += NEAR;
+    }
+    return outcode;
+}
+
+// Get outcode for vertex (perspective view volume)
+function outcodePerspective(vertex, z_min) {
+    let outcode = 0;
+    if (vertex.x < (vertex.z - FLOAT_EPSILON)) {
+        outcode += LEFT;
+    }
+    else if (vertex.x > (-vertex.z + FLOAT_EPSILON)) {
+        outcode += RIGHT;
+    }
+    if (vertex.y < (vertex.z - FLOAT_EPSILON)) {
+        outcode += BOTTOM;
+    }
+    else if (vertex.y > (-vertex.z + FLOAT_EPSILON)) {
+        outcode += TOP;
+    }
+    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
+        outcode += FAR;
+    }
+    else if (vertex.x > (z_min + FLOAT_EPSILON)) {
+        outcode += NEAR;
+    }
+    return outcode;
+}
+
+// Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
+function clipLineParallel(line) {
+    let result = null;
+    let p0 = {x: line.pt0.x, y: line.pt0.y}; 
+    let p1 = {x: line.pt1.x, y: line.pt1.y};
+    let out0 = outcodeParallel(p0);
+    let out1 = outcodeParallel(p1);
+    
+    // TODO: implement clipping here!
+    
+    return result;
+}
+
+// Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
+function clipLinePerspective(line, z_min) {
+    let result = null;
+    let p0 = {x: line.pt0.x, y: line.pt0.y}; 
+    let p1 = {x: line.pt1.x, y: line.pt1.y};
+    let out0 = outcodePerspective(p0, z_min);
+    let out1 = outcodePerspective(p1, z_min);
+    
+    // TODO: implement clipping here!
+    
+    return result;
 }
 
 // Called when user presses a key on the keyboard down 
