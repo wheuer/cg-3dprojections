@@ -61,19 +61,18 @@ function init() {
 
 // Animation loop - repeatedly calls rendering code
 function animate(timestamp) {
-    // step 1: calculate time (time since start) 
+    // step 1: calculate time (time since start)
+    let time = timestamp - start_time;
+    
     // step 2: transform models based on time
+    // TODO: implement this!
+
     // step 3: draw scene
-    // step 4: request next animation frame (recursively calling same function)
-
-
-    var time = timestamp - start_time;
-
-    // ... step 2
-
     drawScene();
 
-    window.requestAnimationFrame(animate);
+    // step 4: request next animation frame (recursively calling same function)
+    // (may want to leave commented out while debugging initially)
+    // window.requestAnimationFrame(animate);
 }
 
 // Main drawing code - use information contained in variable `scene`
