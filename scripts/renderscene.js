@@ -146,8 +146,8 @@ function outcodePerspective(vertex, z_min) {
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLineParallel(line) {
     let result = null;
-    let p0 = {x: line.pt0.x, y: line.pt0.y}; 
-    let p1 = {x: line.pt1.x, y: line.pt1.y};
+    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
+    let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodeParallel(p0);
     let out1 = outcodeParallel(p1);
     
@@ -159,8 +159,8 @@ function clipLineParallel(line) {
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min) {
     let result = null;
-    let p0 = {x: line.pt0.x, y: line.pt0.y}; 
-    let p1 = {x: line.pt1.x, y: line.pt1.y};
+    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
+    let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
     
