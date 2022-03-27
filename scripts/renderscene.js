@@ -199,11 +199,11 @@ function onKeyDown(event) {
 
 // Called when user selects a new scene JSON file
 function loadNewScene() {
-    var scene_file = document.getElementById('scene_file');
+    let scene_file = document.getElementById('scene_file');
 
     console.log(scene_file.files[0]);
 
-    var reader = new FileReader();
+    let reader = new FileReader();
     reader.onload = (event) => {
         scene = JSON.parse(event.target.result);
         scene.view.prp = Vector3(scene.view.prp[0], scene.view.prp[1], scene.view.prp[2]);
