@@ -171,6 +171,9 @@ class Renderer {
                                                 scene.models[i].vertices[j][1],
                                                 scene.models[i].vertices[j][2],
                                                 1));
+                    if (scene.models[i].hasOwnProperty('animation')) {
+                        model.animation = JSON.parse(JSON.stringify(scene.models[i].animation));
+                    }
                 }
             }
             else {
@@ -180,7 +183,7 @@ class Renderer {
                                        1);
                 for (let key in scene.models[i]) {
                     if (scene.models[i].hasOwnProperty(key) && key !== 'type' && key != 'center') {
-                        model[key] = scene.models[i][key];
+                        model[key] = JSON.parse(JSON.stringify(scene.models[i][key]));
                     }
                 }
             }
