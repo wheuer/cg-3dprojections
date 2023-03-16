@@ -72,7 +72,7 @@ v.normalize();
 
 **Result:**
 
-$$v = \begin{bmatrix}0.365148\\\0.182574\\\-0.912871\end{bmatrix}$$
+$$v = \begin{bmatrix}0.365148\\\0.182574\\\ -0.912871\end{bmatrix}$$
 
 ---
 
@@ -89,7 +89,7 @@ v.scale(2);
 
 **Result:**
 
-$$v = \begin{bmatrix}4\\\2\\\-10\end{bmatrix}$$
+$$v = \begin{bmatrix}4\\\2\\\ -10\end{bmatrix}$$
 
 ---
 
@@ -108,7 +108,7 @@ let v3 = v1.add(v2);
 
 **Result:**
 
-$$v3 = \begin{bmatrix}8\\\-3\\\4\end{bmatrix}$$
+$$v3 = \begin{bmatrix}8\\\ -3\\\4\end{bmatrix}$$
 
 ---
 
@@ -127,7 +127,7 @@ let v3 = v1.subtract(v2);
 
 **Result:**
 
-$$v3 = \begin{bmatrix}-4\\\5\\\-14\end{bmatrix}$$
+$$v3 = \begin{bmatrix}-4\\\5\\\ -14\end{bmatrix}$$
 
 ---
 
@@ -165,7 +165,7 @@ let v3 = v1.cross(v2);
 
 **Result:**
 
-$$v3 = \begin{bmatrix}-11\\\-48\\\-14\end{bmatrix}$$
+$$v3 = \begin{bmatrix}-11\\\ -48\\\ -14\end{bmatrix}$$
 
 ---
 
