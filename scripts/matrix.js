@@ -216,6 +216,7 @@ class Vector extends Matrix {
         }
         else {
             super(n, 1);
+            this.data[0][0] = 0;
         }
     }
 
@@ -258,19 +259,19 @@ class Vector extends Matrix {
     }
 
     set y(val) {
-        if (this.rows > 0) {
+        if (this.rows > 1) {
             this.data[1][0] = val;
         }
     }
 
     set z(val) {
-        if (this.rows > 0) {
+        if (this.rows > 2) {
             this.data[2][0] = val;
         }
     }
 
     set w(val) {
-        if (this.rows > 0) {
+        if (this.rows > 3) {
             this.data[3][0] = val;
         }
     }
