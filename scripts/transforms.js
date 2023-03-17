@@ -17,6 +17,12 @@ function mat4x4MPer() {
     return mper;
 }
 
+// create a 4x4 matrix to translate/scale projected vertices to the viewport (window)
+function mat4x4Viewport(width, height) {
+    let viewport = new Matrix(4, 4);
+    // viewport.values = ...;
+    return viewport;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////
