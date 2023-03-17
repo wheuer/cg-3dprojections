@@ -68,7 +68,7 @@ class Renderer {
         //   * For each line segment in each edge
         //     * clip in 3D
         //     * project to 2D
-        //     * translate/scale to window
+        //     * translate/scale to viewport (i.e. window)
         //     * draw line
     }
 
