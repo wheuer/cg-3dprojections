@@ -106,8 +106,8 @@ class Renderer {
         let result = null;
         let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
         let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
-        let out0 = outcodePerspective(p0, z_min);
-        let out1 = outcodePerspective(p1, z_min);
+        let out0 = this.outcodePerspective(p0, z_min);
+        let out1 = this.outcodePerspective(p1, z_min);
         
         // TODO: implement clipping here!
         
