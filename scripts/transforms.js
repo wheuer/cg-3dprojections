@@ -1,3 +1,5 @@
+import { Matrix, Vector } from "./matrix.js";
+
 // create a 4x4 matrix to the perspective projection / view matrix
 function mat4x4Perspective(prp, srp, vup, clip) {
     // 1. translate PRP to origin
@@ -80,3 +82,18 @@ function Vector4(x, y, z, w) {
     vec4.values = [x, y, z, w];
     return vec4;
 }
+
+export {
+    mat4x4Perspective,
+    mat4x4MPer,
+    mat4x4Viewport,
+    mat4x4Identity,
+    mat4x4Translate,
+    mat4x4Scale,
+    mat4x4RotateX,
+    mat4x4RotateY,
+    mat4x4RotateZ,
+    mat4x4ShearXY,
+    Vector3,
+    Vector4
+};

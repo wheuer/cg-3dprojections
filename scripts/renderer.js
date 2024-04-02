@@ -1,3 +1,6 @@
+import * as CG from './transforms.js';
+import { Matrix, Vector } from "./matrix.js";
+
 const LEFT =   32; // binary 100000
 const RIGHT =  16; // binary 010000
 const BOTTOM = 8;  // binary 001000
@@ -58,8 +61,6 @@ class Renderer {
     //
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        console.log('draw()');
 
         // TODO: implement drawing here!
         // For each model
@@ -153,9 +154,9 @@ class Renderer {
     processScene(scene) {
         let processed = {
             view: {
-                prp: Vector3(scene.view.prp[0], scene.view.prp[1], scene.view.prp[2]),
-                srp: Vector3(scene.view.srp[0], scene.view.srp[1], scene.view.srp[2]),
-                vup: Vector3(scene.view.vup[0], scene.view.vup[1], scene.view.vup[2]),
+                prp: CG.Vector3(scene.view.prp[0], scene.view.prp[1], scene.view.prp[2]),
+                srp: CG.Vector3(scene.view.srp[0], scene.view.srp[1], scene.view.srp[2]),
+                vup: CG.Vector3(scene.view.vup[0], scene.view.vup[1], scene.view.vup[2]),
                 clip: [...scene.view.clip]
             },
             models: []
@@ -167,10 +168,10 @@ class Renderer {
                 model.vertices = [];
                 model.edges = JSON.parse(JSON.stringify(scene.models[i].edges));
                 for (let j = 0; j < scene.models[i].vertices.length; j++) {
-                    model.vertices.push(Vector4(scene.models[i].vertices[j][0],
-                                                scene.models[i].vertices[j][1],
-                                                scene.models[i].vertices[j][2],
-                                                1));
+                    model.vertices.push(CG.Vector4(scene.models[i].vertices[j][0],
+                                                   scene.models[i].vertices[j][1],
+                                                   scene.models[i].vertices[j][2],
+                                                   1));
                     if (scene.models[i].hasOwnProperty('animation')) {
                         model.animation = JSON.parse(JSON.stringify(scene.models[i].animation));
                     }
@@ -211,3 +212,5 @@ class Renderer {
         this.ctx.fillRect(x1 - 2, y1 - 2, 4, 4);
     }
 };
+
+export { Renderer };

@@ -181,7 +181,7 @@ class Matrix {
         }
         return values;
     }
-}
+};
 
 Matrix.multiply = function(matrices) {
     var i;
@@ -345,4 +345,6 @@ class Vector extends Matrix {
         }
         return result;
     }
-}
+};
+
+export { Matrix, Vector };
