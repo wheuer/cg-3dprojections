@@ -1,12 +1,12 @@
 import * as CG from './transforms.js';
 import { Matrix, Vector } from "./matrix.js";
 
-const LEFT =   32; // binary 100000
-const RIGHT =  16; // binary 010000
+const LEFT   = 32; // binary 100000
+const RIGHT  = 16; // binary 010000
 const BOTTOM = 8;  // binary 001000
-const TOP =    4;  // binary 000100
-const FAR =    2;  // binary 000010
-const NEAR =   1;  // binary 000001
+const TOP    = 4;  // binary 000100
+const FAR    = 2;  // binary 000010
+const NEAR   = 1;  // binary 000001
 const FLOAT_EPSILON = 0.000001;
 
 class Renderer {
@@ -23,12 +23,12 @@ class Renderer {
         this.prev_time = null;
     }
 
-    //
+    // Animations
     updateTransforms(time, delta_time) {
         // TODO: update any transformations needed for animation
     }
 
-    //
+    // all of the camera not the models
     rotateLeft() {
 
     }
@@ -58,10 +58,9 @@ class Renderer {
 
     }
 
-    //
+    // 
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
         // TODO: implement drawing here!
         // For each model
         //   * For each vertex
@@ -71,6 +70,48 @@ class Renderer {
         //     * project to 2D
         //     * translate/scale to viewport (i.e. window)
         //     * draw line
+        let view = this.scene.view;
+        let nPerMatrix = CG.mat4x4Perspective(view.prp, view.srp, view.vup, view.clip);
+        let mPerMatrix = CG.mat4x4MPer();
+
+        // For each model
+        for (let i = 0; i < this.scene.models.length; i++) {
+            let model = this.scene.models[i];
+           
+            // For each vertex, transform into canonical view volume
+            let canonicalVertices = [];
+            for (let j = 0; j < model.vertices.length; j++) {
+                canonicalVertices.push(Matrix.multiply([nPerMatrix, model.vertices[j]]));
+            }
+            
+            // TODO: Clip all edges in 3D
+
+            // Project all vertices to 2D
+            for (let j = 0; j < canonicalVertices.length; j++) {
+                // Multiply by Mper
+                canonicalVertices[j] = Matrix.multiply([mPerMatrix, canonicalVertices[j]]);
+
+                // Convert from homogenous to cartesian
+                canonicalVertices[j].x /= canonicalVertices[j].w;
+                canonicalVertices[j].y /= canonicalVertices[j].w;
+                canonicalVertices[j].w = 1;
+            }
+
+            // Convert all clipped vertices to viewport/window
+            let viewportMatrix = CG.mat4x4Viewport(this.canvas.width, this.canvas.height);
+            for (let j = 0; j < canonicalVertices.length; j++) {
+                canonicalVertices[j] = Matrix.multiply([viewportMatrix, canonicalVertices[j]])
+            }
+
+            // Draw each line segment
+            for (let j = 0; j < model.edges.length; j++) {
+                let edges = model.edges[j];
+                for (let k = 0; k < edges.length - 1; k++) {
+                    this.drawLine(canonicalVertices[edges[k]].x, canonicalVertices[edges[k]].y, canonicalVertices[edges[k + 1]].x, canonicalVertices[edges[k + 1]].y);
+                }
+            }
+        }
+
     }
 
     // Get outcode for a vertex
@@ -111,6 +152,7 @@ class Renderer {
         let out1 = this.outcodePerspective(p1, z_min);
         
         // TODO: implement clipping here!
+        // Loop until trivally accept or reject
         
         return result;
     }
@@ -150,7 +192,7 @@ class Renderer {
         }
     }
 
-    //
+    // Convert JSON file to vectors (don't need to modify)
     processScene(scene) {
         let processed = {
             view: {
