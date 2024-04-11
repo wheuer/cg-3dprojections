@@ -18,7 +18,7 @@ class Renderer {
         this.canvas.height = canvas.height;
         this.ctx = this.canvas.getContext('2d');
         this.scene = this.processScene(scene);
-        this.enable_animation = false;  // <-- disabled for easier debugging; enable for animation
+        this.enable_animation = true;  // <-- disabled for easier debugging; enable for animation
         this.start_time = null;
         this.prev_time = null;
     }
@@ -28,34 +28,66 @@ class Renderer {
         // TODO: update any transformations needed for animation
     }
 
-    // all of the camera not the models
+    // 
     rotateLeft() {
-
+       
     }
     
     //
     rotateRight() {
-
+        
     }
     
     //
     moveLeft() {
+        let prp = this.scene.view.prp;
+        let srp = this.scene.view.srp;
+        let vup = this.scene.view.vup;
+        let vrcn = prp.subtract(srp);
+        vrcn.normalize();
+    
+        let vrcu = vup.cross(vrcn);
+        vrcu.normalize()
 
+        this.scene.view.prp = this.scene.view.prp.subtract(vrcu);
+        this.scene.view.srp = this.scene.view.srp.subtract(vrcu);
     }
     
     //
     moveRight() {
+        let prp = this.scene.view.prp;
+        let srp = this.scene.view.srp;
+        let vup = this.scene.view.vup;
+        let vrcn = prp.subtract(srp);
+        vrcn.normalize();
+    
+        let vrcu = vup.cross(vrcn);
+        vrcu.normalize()
 
+        this.scene.view.prp = this.scene.view.prp.add(vrcu);
+        this.scene.view.srp = this.scene.view.srp.add(vrcu);
     }
     
     //
     moveBackward() {
+        let prp = this.scene.view.prp;
+        let srp = this.scene.view.srp;
+        let vrcn = prp.subtract(srp);
+        vrcn.normalize();
 
+        this.scene.view.prp = prp.add(vrcn);
+        this.scene.view.srp = srp.add(vrcn);
     }
     
     //
     moveForward() {
+        let prp = this.scene.view.prp;
+        let srp = this.scene.view.srp;
+        let vrcn = prp.subtract(srp);
+        vrcn.normalize();
 
+        this.scene.view.prp = prp.subtract(vrcn);
+        this.scene.view.srp = srp.subtract(vrcn);
     }
 
     // 
@@ -153,6 +185,51 @@ class Renderer {
         
         // TODO: implement clipping here!
         // Loop until trivally accept or reject
+
+        while (true) {
+            // Check we can trivally accept or reject
+            if (out0 | out1 == 0) { // Trivally accept
+                return line;
+            } else if (out0 & out1 != 0) { // Trivally reject
+                return null;
+            }
+            
+            // Always have p0 be the one outside the view
+            if (out0 == 0) { // out0 is outside view
+                let temp = p0;
+                p0 = p1;
+                p1 = temp;
+                temp = out0;
+                out0 = out1;
+                out1 = temp;
+            } 
+
+            // Find first bit set to 1 and clip against it
+            let bitPosition;
+            for (let i = 0; i < 6; i++) {
+                if ((out0 >> i) & 1) {
+                    bitPosition = i;
+                    break;
+                }
+            }
+
+            // Clip against relevant edge
+            switch (bitPosition) {
+                case 0: // Clip against left plane
+                    break;
+                case 1: // Clip against right plane
+                    break;
+                case 2: // Clip against bottom plane
+                    break;
+                case 3: // Clip against top plane
+                    break;
+                case 4: // Clip against far plane
+                    break;
+                case 5: // Clip against near plane
+                    break;
+            }
+        }
+        
         
         return result;
     }
