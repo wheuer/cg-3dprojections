@@ -8,9 +8,6 @@ function mat4x4Perspective(prp, srp, vup, clip) {
                            [0, 1, 0, -prp.y],
                            [0, 0, 1, -prp.z],
                            [0, 0, 0, 1]]; 
-
-    // console.log("Translate: ");
-    // console.log(prpTranslate);
     
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
     let vrcn = prp.subtract(srp);

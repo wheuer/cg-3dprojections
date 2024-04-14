@@ -30,12 +30,117 @@ class Renderer {
 
     // 
     rotateLeft() {
-       
+        // Calculate uvn
+        let prp = this.scene.view.prp;
+        let srp = this.scene.view.srp;
+        let vup = this.scene.view.vup;
+        let vrcn = prp.subtract(srp);
+        vrcn.normalize();
+        let vrcu = vup.cross(vrcn);
+        vrcu.normalize()
+        let vrcv = vrcn.cross(vrcu);
+
+        // Translate PRP to origin
+        let translateForward = new Matrix(4, 4);
+        CG.mat4x4Translate(translateForward, -prp.x, -prp.y, -prp.z);
+
+        // Rotate v-axis about the y-axis to align with the y-z plane if not already aligned (cannot have divide by zero)
+        let rotateVYForward = new Matrix(4, 4);
+        if (vrcv.z != 0) {
+            CG.mat4x4RotateY(rotateVYForward, -Math.atan(vrcv.x / vrcv.z));
+        } else {
+            CG.mat4x4Identity(rotateVYForward);
+        }
+
+        // Rotate v-axis about the x-axis to align with the z-axis
+        let rotateVXForward = new Matrix(4, 4);
+        CG.mat4x4RotateX(rotateVXForward, Math.atan(vrcv.y / Math.sqrt(vrcv.x**2 + vrcv.z**2)));
+
+        // Do desired rotation now with v-axis and z-axis aligned
+        let rotate = new Matrix(4, 4);
+        CG.mat4x4RotateZ(rotate, 2*0.0174533); // X degrees each press
+
+        // Rotate back v-axis about the x-axis
+        let rotateVXBackward = new Matrix(4, 4);
+        CG.mat4x4RotateX(rotateVXBackward, -Math.atan(vrcv.y / Math.sqrt(vrcv.x**2 + vrcv.z**2)));
+
+        // Rotate back v-axis about the y-axis if required
+        let rotateVYBackward = new Matrix(4, 4);
+        if (vrcv.z != 0) {
+            CG.mat4x4RotateY(rotateVYBackward, Math.atan(vrcv.x / vrcv.z));
+        } else {
+            CG.mat4x4Identity(rotateVYBackward);
+        }
+
+        // Translate PRP to origin
+        let translateBackward = new Matrix(4, 4);
+        CG.mat4x4Translate(translateBackward, prp.x, prp.y, prp.z);
+
+        // Combine into one matrix 
+        let totalMatrix = Matrix.multiply([translateBackward, rotateVYBackward, rotateVXBackward, rotate, rotateVXForward, rotateVYForward, translateForward]);
+
+        // Apply matrix to srp
+        let homogeneousSRP = CG.Vector4(srp.x, srp.y, srp.z, 1);
+        homogeneousSRP = Matrix.multiply([totalMatrix, homogeneousSRP]);
+        this.scene.view.srp = CG.Vector3(homogeneousSRP.x, homogeneousSRP.y, homogeneousSRP.z);
+        console.log(this.scene.view.srp.values);
     }
     
     //
     rotateRight() {
+        // Calculate uvn
+        let prp = this.scene.view.prp;
+        let srp = this.scene.view.srp;
+        let vup = this.scene.view.vup;
+        let vrcn = prp.subtract(srp);
+        vrcn.normalize();
+        let vrcu = vup.cross(vrcn);
+        vrcu.normalize()
+        let vrcv = vrcn.cross(vrcu);
+
+        // Translate PRP to origin
+        let translateForward = new Matrix(4, 4);
+        CG.mat4x4Translate(translateForward, -prp.x, -prp.y, -prp.z);
+
+        // Rotate v-axis about the y-axis to align with the y-z plane if not already aligned (cannot have divide by zero)
+        let rotateVYForward = new Matrix(4, 4);
+        if (vrcv.z != 0) {
+            CG.mat4x4RotateY(rotateVYForward, -Math.atan(vrcv.x / vrcv.z));
+        } else {
+            CG.mat4x4Identity(rotateVYForward);
+        }
+
+        // Rotate v-axis about the x-axis to align with the z-axis, if its already aligned it will just rotate zero
+        let rotateVXForward = new Matrix(4, 4);
+        CG.mat4x4RotateX(rotateVXForward, Math.atan(vrcv.y / Math.sqrt(vrcv.x**2 + vrcv.z**2)));
+
+        // Do desired rotation now with v-axis and z-axis aligned
+        let rotate = new Matrix(4, 4);
+        CG.mat4x4RotateZ(rotate, -2*0.0174533); // X degrees each press
+
+        // Rotate back v-axis about the x-axis
+        let rotateVXBackward = new Matrix(4, 4);
+        CG.mat4x4RotateX(rotateVXBackward, -Math.atan(vrcv.y / Math.sqrt(vrcv.x**2 + vrcv.z**2)));
+
+        // Rotate back v-axis about the y-axis if required
+        let rotateVYBackward = new Matrix(4, 4);
+        if (vrcv.z != 0) {
+            CG.mat4x4RotateY(rotateVYBackward, Math.atan(vrcv.x / vrcv.z));
+        } else {
+            CG.mat4x4Identity(rotateVYBackward);
+        }
+
+        // Translate PRP to origin
+        let translateBackward = new Matrix(4, 4);
+        CG.mat4x4Translate(translateBackward, prp.x, prp.y, prp.z);
+
+        // Combine into one matrix 
+        let totalMatrix = Matrix.multiply([translateBackward, rotateVYBackward, rotateVXBackward, rotate, rotateVXForward, rotateVYForward, translateForward]);
         
+        // Apply matrix to srp
+        let homogeneousSRP = CG.Vector4(srp.x, srp.y, srp.z, 1);
+        homogeneousSRP = Matrix.multiply([totalMatrix, homogeneousSRP]);
+        this.scene.view.srp = CG.Vector3(homogeneousSRP.x, homogeneousSRP.y, homogeneousSRP.z);        
     }
     
     //
@@ -85,6 +190,8 @@ class Renderer {
         let srp = this.scene.view.srp;
         let vrcn = prp.subtract(srp);
         vrcn.normalize();
+
+        // console.log(vrcn.values);
 
         this.scene.view.prp = prp.subtract(vrcn);
         this.scene.view.srp = srp.subtract(vrcn);
