@@ -197,7 +197,6 @@ class Renderer {
         this.scene.view.srp = srp.subtract(vrcn);
     }
 
-    // 
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         // TODO: implement drawing here!
@@ -252,6 +251,20 @@ class Renderer {
         }
 
     }
+    
+    // Function to project vertices to 2D
+    projectVertices(vertices, projectionMatrix) {
+        let projectedVertices = [];
+        for (let j = 0; j < vertices.length; j++) {
+            let projectedVertex = Matrix.multiply([projectionMatrix, vertices[j]]);
+            projectedVertex.x /= projectedVertex.w;
+            projectedVertex.y /= projectedVertex.w;
+            projectedVertex.w = 1;
+            projectedVertices.push(projectedVertex);
+        }
+        return projectedVertices;
+    }
+    
 
     // Get outcode for a vertex
     // vertex:       Vector4 (transformed vertex in homogeneous coordinates)
@@ -284,20 +297,19 @@ class Renderer {
     // line:         object {pt0: Vector4, pt1: Vector4}
     // z_min:        float (near clipping plane in canonical view volume)
     clipLinePerspective(line, z_min) {
+        console.log("Clipping line...");
         let result = null;
         let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
         let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
         let out0 = this.outcodePerspective(p0, z_min);
         let out1 = this.outcodePerspective(p1, z_min);
-        
-        // TODO: implement clipping here!
-        // Loop until trivally accept or reject
-
+    
+        // Loop until trivially accept or reject
         while (true) {
-            // Check we can trivally accept or reject
-            if (out0 | out1 == 0) { // Trivally accept
+            // Check we can trivially accept or reject
+            if (out0 | out1 == 0) { // Trivially accept; all endpoints in the canvas
                 return line;
-            } else if (out0 & out1 != 0) { // Trivally reject
+            } else if (out0 & out1 != 0) { // Trivially reject; some endpoints outside canvas
                 return null;
             }
             
@@ -310,7 +322,7 @@ class Renderer {
                 out0 = out1;
                 out1 = temp;
             } 
-
+    
             // Find first bit set to 1 and clip against it
             let bitPosition;
             for (let i = 0; i < 6; i++) {
@@ -319,27 +331,54 @@ class Renderer {
                     break;
                 }
             }
-
+    
             // Clip against relevant edge
             switch (bitPosition) {
                 case 0: // Clip against left plane
+                    let tLeft = (-p0.x + z_min * p0.z) / (p1.x - p0.x + (z_min - p1.z));
+                    p0.x = p0.x + tLeft * (p1.x - p0.x);
+                    p0.y = p0.y + tLeft * (p1.y - p0.y);
+                    p0.z = z_min;
                     break;
                 case 1: // Clip against right plane
+                    let tRight = (p0.x + z_min * p0.z) / (p1.x - p0.x - (z_min + p1.z));
+                    p0.x = p0.x + tRight * (p1.x - p0.x);
+                    p0.y = p0.y + tRight * (p1.y - p0.y);
+                    p0.z = -z_min;
                     break;
                 case 2: // Clip against bottom plane
+                    let tBottom = (-p0.y + z_min * p0.z) / (p1.y - p0.y + (z_min - p1.z));
+                    p0.x = p0.x + tBottom * (p1.x - p0.x);
+                    p0.y = p0.y + tBottom * (p1.y - p0.y);
+                    p0.z = z_min;
                     break;
                 case 3: // Clip against top plane
+                    let tTop = (p0.y + z_min * p0.z) / (p1.y - p0.y - (z_min + p1.z));
+                    p0.x = p0.x + tTop * (p1.x - p0.x);
+                    p0.y = p0.y + tTop * (p1.y - p0.y);
+                    p0.z = -z_min;
                     break;
                 case 4: // Clip against far plane
+                    let tFar = (-p0.z - 1) / (p1.z - p0.z - 1);
+                    p0.x = p0.x + tFar * (p1.x - p0.x);
+                    p0.y = p0.y + tFar * (p1.y - p0.y);
+                    p0.z = -1;
                     break;
                 case 5: // Clip against near plane
+                    let tNear = (z_min - p0.z) / (p1.z - p0.z);
+                    p0.x = p0.x + tNear * (p1.x - p0.x);
+                    p0.y = p0.y + tNear * (p1.y - p0.y);
+                    p0.z = z_min;
                     break;
             }
+    
+            // Recalculate outcode for p0
+            out0 = this.outcodePerspective(p0, z_min);
         }
-        
-        
+    
         return result;
     }
+    
 
     //
     animate(timestamp) {
