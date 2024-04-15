@@ -84,7 +84,6 @@ class Renderer {
         let homogeneousSRP = CG.Vector4(srp.x, srp.y, srp.z, 1);
         homogeneousSRP = Matrix.multiply([totalMatrix, homogeneousSRP]);
         this.scene.view.srp = CG.Vector3(homogeneousSRP.x, homogeneousSRP.y, homogeneousSRP.z);
-        console.log(this.scene.view.srp.values);
     }
     
     //
@@ -192,15 +191,13 @@ class Renderer {
         let vrcn = prp.subtract(srp);
         vrcn.normalize();
 
-        // console.log(vrcn.values);
-
         this.scene.view.prp = prp.subtract(vrcn);
         this.scene.view.srp = srp.subtract(vrcn);
     }
+
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      
-        // TODO: implement drawing here!
+    
         // For each model
         //  * For each vertex
         //    * transform endpoints to canonical view volume
@@ -216,57 +213,55 @@ class Renderer {
       
         // For each model
         for (let i = 0; i < this.scene.models.length; i++) {
-          let model = this.scene.models[i];
+            let model = this.scene.models[i];
       
-          // For each vertex, transform into canonical view volume
-          let canonicalVertices = [];
-          for (let j = 0; j < model.vertices.length; j++) {
-            canonicalVertices.push(Matrix.multiply([nPerMatrix, model.vertices[j]]));
-          }
-      
-          // Clip all edges in 3D
-          let clippedEdges = [];
-          for (let j = 0; j < model.edges.length; j++) {
-            let edges = model.edges[j];
-            let clippedEdge = [];
-            for (let k = 0; k < edges.length - 1; k++) {
-              let clippedLine = this.clipLinePerspective({
-                pt0: canonicalVertices[edges[k]],
-                pt1: canonicalVertices[edges[k + 1]],
-              }, view.clip); // Pass the clipping planes array
-              if (clippedLine) {
-                clippedEdge.push(clippedLine.pt0.x, clippedLine.pt0.y, clippedLine.pt1.x, clippedLine.pt1.y);
-              }
+            // For each vertex, transform into canonical view volume
+            let canonicalVertices = [];
+            for (let j = 0; j < model.vertices.length; j++) {
+                canonicalVertices.push(Matrix.multiply([nPerMatrix, model.vertices[j]]));
             }
-            if (clippedEdge.length > 0) {
-              clippedEdges.push(clippedEdge);
+      
+            // Clip all edges in 3D
+            // Make a new list of edges that have been clipped and are valid. The new format will be one array per edge so [0, 1] would be an edge between vertices 0 -> 1.
+            let totalClippedEdges = [];
+            for (let j = 0; j < model.edges.length; j++) {
+                let edges = model.edges[j];
+                for (let k = 0; k < edges.length - 1; k++) {
+                    let clippedLine = this.clipLinePerspective({
+                        pt0: canonicalVertices[edges[k]],
+                        pt1: canonicalVertices[edges[k + 1]],
+                    }, view.clip); // Pass the clipping planes array
+                    if (clippedLine) {
+                        totalClippedEdges.push([clippedLine.pt0, clippedLine.pt1]);
+                    }
+                }
             }
-          }
-      
-          // Project all vertices to 2D
-          for (let j = 0; j < canonicalVertices.length; j++) {
-            // Multiply by Mper
-            canonicalVertices[j] = Matrix.multiply([mPerMatrix, canonicalVertices[j]]);
-      
-            // Convert from homogenous to cartesian
-            canonicalVertices[j].x /= canonicalVertices[j].w;
-            canonicalVertices[j].y /= canonicalVertices[j].w;
-            canonicalVertices[j].w = 1;
-          }
-      
-          // Convert all clipped vertices to viewport/window
-          let viewportMatrix = CG.mat4x4Viewport(this.canvas.width, this.canvas.height);
-          for (let j = 0; j < canonicalVertices.length; j++) {
-            canonicalVertices[j] = Matrix.multiply([viewportMatrix, canonicalVertices[j]])
-          }
-      
-          // Draw each line segment
-          for (let j = 0; j < model.edges.length; j++) {
-            let edges = model.edges[j];
-            for (let k = 0; k < edges.length - 1; k++) {
-              this.drawLine(canonicalVertices[edges[k]].x, canonicalVertices[edges[k]].y, canonicalVertices[edges[k + 1]].x, canonicalVertices[edges[k + 1]].y);
+
+            // Project all vertices to 2D
+            for (let j = 0; j < totalClippedEdges.length; j++) {
+                for (let k = 0; k < totalClippedEdges[j].length; k++) {
+                    // Multiply by Mper
+                    totalClippedEdges[j][k] = Matrix.multiply([mPerMatrix, totalClippedEdges[j][k]]);
+                
+                    // Convert from homogenous to cartesian
+                    totalClippedEdges[j][k].x /= totalClippedEdges[j][k].w;
+                    totalClippedEdges[j][k].y /= totalClippedEdges[j][k].w;
+                    totalClippedEdges[j][k].w = 1;
+                }
             }
-          }
+      
+            // Convert all clipped vertices to viewport/window
+            let viewportMatrix = CG.mat4x4Viewport(this.canvas.width, this.canvas.height);
+            for (let j = 0; j < totalClippedEdges.length; j++) {
+                for (let k = 0; k < totalClippedEdges[j].length; k++) {
+                    totalClippedEdges[j][k] = Matrix.multiply([viewportMatrix, totalClippedEdges[j][k]])
+                }
+            }
+      
+            // Draw each line segment of the clipped edges
+            for (let j = 0; j < totalClippedEdges.length; j++) {
+                this.drawLine(totalClippedEdges[j][0].x, totalClippedEdges[j][0].y, totalClippedEdges[j][1].x, totalClippedEdges[j][1].y);
+            }
         }
       }
     
@@ -315,29 +310,31 @@ class Renderer {
     // line:         object {pt0: Vector4, pt1: Vector4}
     // z_min:        float (near clipping plane in canonical view volume)
     clipLinePerspective(line, z_min) {
-        let result = null;
         let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
         let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
         let out0 = this.outcodePerspective(p0, z_min);
         let out1 = this.outcodePerspective(p1, z_min);
-    
+        let result = null;
+
         // Loop until trivially accept or reject
         while (true) {
             // Check we can trivially accept or reject
-            if (out0 | out1 == 0) { // Trivially accept; all endpoints in the canvas
-                return line;
-            } else if (out0 & out1 != 0) { // Trivially reject; some endpoints outside canvas
+            if ((out0 | out1) == 0) { // Trivially accept; all endpoints in the canvas
+                break;
+            } else if ((out0 & out1) != 0) { // Trivially reject; both endpoints outside canvas
                 return null;
             }
             
             // Always have p0 be the one outside the view
-            if (out0 == 0) { // out0 is outside view
+            let swapped = false;
+            if (out0 == 0) { // out0 is inside view so swap points
                 let temp = p0;
                 p0 = p1;
                 p1 = temp;
                 temp = out0;
                 out0 = out1;
                 out1 = temp;
+                swapped = true;
             } 
     
             // Find first bit set to 1 and clip against it
@@ -349,51 +346,51 @@ class Renderer {
                 }
             }
     
+            let dx = p0.x - p1.x;
+            let dz = p0.z - p1.z;
+            let dy = p0.y - p1.y;
+            let t;
             switch (bitPosition) {
-                case 0: // Clip against left
-                    console.log("Clipping line left");
-                    let tLeft = (-p0.x + z_min * p0.z) / (p1.x - p0.x + (z_min - p1.z));
-                    p0.x = p0.x + tLeft * (p1.x - p0.x);
-                    p0.y = p0.y + tLeft * (p1.y - p0.y);
-                    p0.z = z_min;
+                case 5: // Clip against left
+                    t = (-p1.x + p1.z) / (dx - dz);
                     break;
-                case 1: // Clip against right
-                    console.log("Clipping line right");
-                    let tRight = (p0.x + z_min * p0.z) / (p1.x - p0.x - (z_min + p1.z));
-                    p0.x = p0.x + tRight * (p1.x - p0.x);
-                    p0.y = p0.y + tRight * (p1.y - p0.y);
-                    p0.z = -z_min;
+                case 4: // Clip against right
+                    t = (p1.x + p1.z) / (-dx - dz);
                     break;
-                case 2: // Clip against bottom
-                    console.log("Clipping line bottom");
-                    let tBottom = (-p0.y + z_min * p0.z) / (p1.y - p0.y + (z_min - p1.z));
-                    p0.x = p0.x + tBottom * (p1.x - p0.x);
-                    p0.y = p0.y + tBottom * (p1.y - p0.y);
-                    p0.z = z_min;
+                case 3: // Clip against bottom
+                    t = (-p1.y + p1.z) / (dy - dz);
                     break;
-                case 3: // Clip against top
-                    console.log("Clipping line top");
-                    let tTop = (p0.y + z_min * p0.z) / (p1.y - p0.y - (z_min + p1.z));
-                    p0.x = p0.x + tTop * (p1.x - p0.x);
-                    p0.y = p0.y + tTop * (p1.y - p0.y);
-                    p0.z = -z_min;
+                case 2: // Clip against top
+                    t = (p1.y + p1.z) / (-dy - dz);
                     break;
-                case 4: // Clip against far
-                    console.log("Clipping line far");
-                    let tFar = (-p0.z - 1) / (p1.z - p0.z - 1);
-                    p0.x = p0.x + tFar * (p1.x - p0.x);
-                    p0.y = p0.y + tFar * (p1.y - p0.y);
-                    p0.z = -1;
+                case 1: // Clip against far
+                    t = (-p1.z - 1) / dz;
                     break;
-                case 5: // Clip against near
-                    console.log("Clipping line near");
-                    let tNear = (z_min - p0.z) / (p1.z - p0.z);
-                    p0.x = p0.x + tNear * (p1.x - p0.x);
-                    p0.y = p0.y + tNear * (p1.y - p0.y);
-                    p0.z = z_min;
+                case 0: // Clip against near
+                    t = (p1.z - z_min) / -dz;
                     break;
             }
+            p0.x = p1.x + t * dx;
+            p0.y = p1.y + t * dy;
+            p0.z = p1.z + t * dz;
+
+            // If p0 and p1 were swapped, make sure to swap back
+            if (swapped == true) {
+                let temp = p0;
+                p0 = p1;
+                p1 = temp;
+                swapped = false;
+            }
+
+            // Re-calculate the outcodes based on the new point locations
             out0 = this.outcodePerspective(p0, z_min);
+            out1 = this.outcodePerspective(p1, z_min);
+        }
+
+        // Points were trivally accepted, return final point locations
+        result = {
+            pt0: CG.Vector4(p0.x, p0.y, p0.z, 1),
+            pt1: CG.Vector4(p1.x, p1.y, p1.z, 1),
         }
         return result;
     }
