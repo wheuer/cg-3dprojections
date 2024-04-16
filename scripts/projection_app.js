@@ -82,13 +82,13 @@ let initial_scene = {
                 [4, 9]
             ]
         },
-        {
-            type: 'cube',
-            center: [0, 0, -10], 
-            width: 5, 
-            height: 5, 
-            depth: 5 
-        }          
+        // {
+        //     type: 'cube',
+        //     center: [0, 0, -10], 
+        //     width: 5, 
+        //     height: 5, 
+        //     depth: 5 
+        // }          
     ]
 };
 

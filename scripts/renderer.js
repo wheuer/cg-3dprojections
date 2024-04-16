@@ -24,9 +24,36 @@ class Renderer {
         this.prev_time = null;
     }
 
-    // Animations
+    // Animations, time is in milliseconds
     updateTransforms(time, delta_time) {
-        // TODO: update any transformations needed for animation
+        // Update all rotation matrices of all models
+        for (let i = 0; i < this.scene.models.length; i++) {
+            let model = this.scene.models[i];
+            if (model.hasOwnProperty('animation')) {
+                // Overall process will be move the model to the origin, rotate, and move back
+                // Move to origin
+                let moveForwad = new Matrix(4, 4);
+                CG.mat4x4Translate(moveForwad, -model.center.x, -model.center.y, -model.center.z);
+
+                // Rotate
+                let rotation = ((time / 1000) * model.animation.rps * 2 * Math.PI);
+                let rotate = new Matrix(4, 4);
+                if (model.animation.axis === "x") {
+                    CG.mat4x4RotateX(rotate, rotation);
+                } else if (model.animation.axis === "y") {
+                    CG.mat4x4RotateY(rotate, rotation);
+                } else if (model.animation.axis === "z") {
+                    CG.mat4x4RotateZ(rotate, rotation);
+                }
+
+                // Move back from origin
+                let moveBackward = new Matrix(4, 4);
+                CG.mat4x4Translate(moveBackward, model.center.x, model.center.y, model.center.z);
+
+                // Update models matrix
+                this.scene.models[i].matrix = Matrix.multiply([moveBackward, rotate, moveForwad]);
+            }
+        }
     }
 
     // 
@@ -214,11 +241,18 @@ class Renderer {
         // For each model
         for (let i = 0; i < this.scene.models.length; i++) {
             let model = this.scene.models[i];
-      
+            
+            // Apply transformation matrix of model to all vertices
+            // Cannot change the actual model's vertices so need a local copy
+            let localVertices = [];
+            for (let j = 0; j < model.vertices.length; j++) {
+                localVertices.push(Matrix.multiply([model.matrix, model.vertices[j]]));
+            }
+
             // For each vertex, transform into canonical view volume
             let canonicalVertices = [];
             for (let j = 0; j < model.vertices.length; j++) {
-                canonicalVertices.push(Matrix.multiply([nPerMatrix, model.vertices[j]]));
+                canonicalVertices.push(Matrix.multiply([nPerMatrix, localVertices[j]]));
             }
       
             // Clip all edges in 3D
@@ -430,7 +464,7 @@ class Renderer {
         }
     }
 
-    // Convert JSON file to vectors (don't need to modify)
+    // Convert JSON file to vectors
     processScene(scene) {
         let processed = {
             view: {
@@ -456,28 +490,104 @@ class Renderer {
                         model.animation = JSON.parse(JSON.stringify(scene.models[i].animation));
                     }
                 }
-            }
-            else if (model.type === 'cube') {
-                model.type = 'cube';
+            } else if (model.type === 'cube') {
                 model.vertices = [];
-                model.edges = []; 
-            
-                const scaleFactor = 2;
-                const centerOffset = 5; 
-            
-                model.vertices.push(CG.Vector4(-1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1)); // Vertex 0
-                model.vertices.push(CG.Vector4(1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1));  // Vertex 1
-                model.vertices.push(CG.Vector4(1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1));   // Vertex 2
-                model.vertices.push(CG.Vector4(-1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1));  // Vertex 3
-                model.vertices.push(CG.Vector4(-1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1));  // Vertex 4
-                model.vertices.push(CG.Vector4(1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1));   // Vertex 5
-                model.vertices.push(CG.Vector4(1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1));    // Vertex 6
-                model.vertices.push(CG.Vector4(-1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1));   // Vertex 7
-            
-                model.edges.push([0, 1], [1, 2], [2, 3], [3, 0]); 
-                model.edges.push([4, 5], [5, 6], [6, 7], [7, 4]); 
-                model.edges.push([0, 4], [1, 5], [2, 6], [3, 7]); 
+                model.edges = [];
+
+                let center = scene.models[i].center;
+                let width = scene.models[i].width;
+                let height = scene.models[i].height;
+                let depth = scene.models[i].depth;
+
+                model.center = CG.Vector3(center[0], center[1], center[2]);
+                
+                model.vertices.push(CG.Vector4(center[0] - width/2, center[1] - height/2, center[2] - depth/2, 1)); // Back bottom left corner,  0
+                model.vertices.push(CG.Vector4(center[0] - width/2, center[1] + height/2, center[2] - depth/2, 1)); // Back upper left corner,   1
+                model.vertices.push(CG.Vector4(center[0] + width/2, center[1] + height/2, center[2] - depth/2, 1)); // Back upper right corner,  2
+                model.vertices.push(CG.Vector4(center[0] + width/2, center[1] - height/2, center[2] - depth/2, 1)); // Back bottom right corner, 3
+                
+                model.vertices.push(CG.Vector4(center[0] - width/2, center[1] - height/2, center[2] + depth/2, 1)); // Front bottom left corner, 4
+                model.vertices.push(CG.Vector4(center[0] - width/2, center[1] + height/2, center[2] + depth/2, 1)); // Front upper left corner,  5
+                model.vertices.push(CG.Vector4(center[0] + width/2, center[1] + height/2, center[2] + depth/2, 1)); // Front upper right corner, 6
+                model.vertices.push(CG.Vector4(center[0] + width/2, center[1] - height/2, center[2] + depth/2, 1)); // Front bottom right corner,7
+                
+                // Front and back rectanles
+                model.edges.push([0, 1, 2, 3, 0]); // Back
+                model.edges.push([4, 5, 6, 7, 4]); // Front
+                
+                 // Cross pieces
+                model.edges.push([0, 4]);
+                model.edges.push([1, 5]);
+                model.edges.push([2, 6]);
+                model.edges.push([3, 7]);
+
+                if (scene.models[i].hasOwnProperty('animation')) {
+                    model.animation = JSON.parse(JSON.stringify(scene.models[i].animation));
+                }
+            } else if (model.type === 'cone') {
+                model.vertices = [];
+                model.edges = [];
+
+                let center = scene.models[i].center;
+                let radius = scene.models[i].radius;
+                let height = scene.models[i].height;
+                let sides = scene.models[i].sides;
+
+                model.center = CG.Vector3(center[0], center[1], center[2]);
+
+                // Create base "circle"
+                let radianIncrement = 2*Math.PI / sides;
+                let currentRadians = 0;
+                for (let j = 0; j < sides; j++) {
+                    model.vertices.push(CG.Vector4(center[0] + (radius * Math.cos(currentRadians)), center[1] - height/2, center[2] - (radius * Math.sin(currentRadians)), 1));
+                    currentRadians += radianIncrement;
+                }
+
+                model.vertices.push(CG.Vector4(center[0], center[1] + height/2, center[2], 1));
+
+                // Connect all sides together
+                for (let j = 0; j < sides - 1; j++) {
+                    model.edges.push([j, j + 1]);
+                }
+                model.edges.push([sides - 1, 0]);
+
+                // Connect all other vertices to point on top
+                for (let j = 0; j < sides; j++) {
+                    model.edges.push([sides, j]);
+                }
+
+                if (scene.models[i].hasOwnProperty('animation')) {
+                    model.animation = JSON.parse(JSON.stringify(scene.models[i].animation));
+                }
+            } else if (model.type === 'cylinder') {
+                model.vertices = [];
+                model.edges = [];
+
+                let center = scene.models[i].center;
+                let radius = scene.models[i].radius;
+                let height = scene.models[i].height;
+                let sides = scene.models[i].sides;
+
+                model.center = CG.Vector3(center[0], center[1], center[2]);
+
+                // Create base "circle"
+                let radianIncrement = 2*Math.PI / sides;
+                let currentRadians = 0;
+                for (let j = 0; j < sides; j++) {
+                    model.vertices.push(CG.Vector4(center[0] + (radius * Math.cos(currentRadians)), center[1], center[2] - (radius * Math.sin(currentRadians)), 1));
+                    currentRadians += radianIncrement;
+                }
+
+                model.vertices.push(CG.Vector4(center[0], center[1] + height, center[2], 1));
+
+                // Connect all sides together
+                for (let j = 0; j < sides - 1; j++) {
+                    model.edges.push([j, j + 1]);
+                }
+                model.edges.push([sides - 1, 0]);
             }
+            
+            
             else {
                 model.center = Vector4(scene.models[i].center[0],
                                     scene.models[i].center[1],
