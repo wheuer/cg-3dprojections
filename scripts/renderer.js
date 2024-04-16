@@ -449,19 +449,40 @@ class Renderer {
                 model.edges = JSON.parse(JSON.stringify(scene.models[i].edges));
                 for (let j = 0; j < scene.models[i].vertices.length; j++) {
                     model.vertices.push(CG.Vector4(scene.models[i].vertices[j][0],
-                                                   scene.models[i].vertices[j][1],
-                                                   scene.models[i].vertices[j][2],
-                                                   1));
+                                                scene.models[i].vertices[j][1],
+                                                scene.models[i].vertices[j][2],
+                                                1));
                     if (scene.models[i].hasOwnProperty('animation')) {
                         model.animation = JSON.parse(JSON.stringify(scene.models[i].animation));
                     }
                 }
             }
+            else if (model.type === 'cube') {
+                model.type = 'cube';
+                model.vertices = [];
+                model.edges = []; 
+            
+                const scaleFactor = 2;
+                const centerOffset = 5; 
+            
+                model.vertices.push(CG.Vector4(-1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1)); // Vertex 0
+                model.vertices.push(CG.Vector4(1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1));  // Vertex 1
+                model.vertices.push(CG.Vector4(1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1));   // Vertex 2
+                model.vertices.push(CG.Vector4(-1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1));  // Vertex 3
+                model.vertices.push(CG.Vector4(-1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1));  // Vertex 4
+                model.vertices.push(CG.Vector4(1 * scaleFactor + centerOffset, -1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1));   // Vertex 5
+                model.vertices.push(CG.Vector4(1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1));    // Vertex 6
+                model.vertices.push(CG.Vector4(-1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1 * scaleFactor + centerOffset, 1));   // Vertex 7
+            
+                model.edges.push([0, 1], [1, 2], [2, 3], [3, 0]); 
+                model.edges.push([4, 5], [5, 6], [6, 7], [7, 4]); 
+                model.edges.push([0, 4], [1, 5], [2, 6], [3, 7]); 
+            }
             else {
                 model.center = Vector4(scene.models[i].center[0],
-                                       scene.models[i].center[1],
-                                       scene.models[i].center[2],
-                                       1);
+                                    scene.models[i].center[1],
+                                    scene.models[i].center[2],
+                                    1);
                 for (let key in scene.models[i]) {
                     if (scene.models[i].hasOwnProperty(key) && key !== 'type' && key != 'center') {
                         model[key] = JSON.parse(JSON.stringify(scene.models[i][key]));
@@ -475,6 +496,7 @@ class Renderer {
 
         return processed;
     }
+
     
     // x0:           float (x coordinate of p0)
     // y0:           float (y coordinate of p0)

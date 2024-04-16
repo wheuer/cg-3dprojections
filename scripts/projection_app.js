@@ -52,10 +52,6 @@ let app = createApp({
 
 let initial_scene = {
     view: {
-        // prp: [44, 20, -16],
-        // srp: [20, 20, -40],
-        // vup: [0, 1, 0],
-        // clip: [-19, 5, -10, 8, 12, 100]
         prp: [0, 10, -5],
         srp: [0, 10, -40],
         vup: [0, 1, 0],
@@ -85,9 +81,17 @@ let initial_scene = {
                 [3, 8],
                 [4, 9]
             ]
-        }
+        },
+        {
+            type: 'cube',
+            center: [0, 0, -10], 
+            width: 5, 
+            height: 5, 
+            depth: 5 
+        }          
     ]
 };
+
 
 document.addEventListener('keydown', app.onKeyDown, false);
     
