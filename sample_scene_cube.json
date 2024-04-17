@@ -27,6 +27,17 @@
                 "axis": "z",
                 "rps": 0.5
             }
+        },
+        {
+            "type": "cylinder",
+            "center": [0, 0, -10], 
+            "radius": 2,
+            "height": 5,
+            "sides": 50,
+            "animation": {
+                "axis": "x",
+                "rps": 0.5
+            }
         }
     ]
 }

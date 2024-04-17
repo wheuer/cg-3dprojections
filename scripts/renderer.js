@@ -574,22 +574,104 @@ class Renderer {
                 let radianIncrement = 2*Math.PI / sides;
                 let currentRadians = 0;
                 for (let j = 0; j < sides; j++) {
-                    model.vertices.push(CG.Vector4(center[0] + (radius * Math.cos(currentRadians)), center[1], center[2] - (radius * Math.sin(currentRadians)), 1));
+                    model.vertices.push(CG.Vector4(center[0] + (radius * Math.cos(currentRadians)), center[1] - height/2, center[2] - (radius * Math.sin(currentRadians)), 1));
                     currentRadians += radianIncrement;
                 }
 
-                model.vertices.push(CG.Vector4(center[0], center[1] + height, center[2], 1));
-
-                // Connect all sides together
+                // Connect all bottom "circle" sides together
                 for (let j = 0; j < sides - 1; j++) {
                     model.edges.push([j, j + 1]);
                 }
                 model.edges.push([sides - 1, 0]);
-            }
-            
-            
-            else {
-                model.center = Vector4(scene.models[i].center[0],
+
+                // Create top "circle"
+                currentRadians = 0;
+                for (let j = 0; j < sides; j++) {
+                    model.vertices.push(CG.Vector4(center[0] + (radius * Math.cos(currentRadians)), center[1] + height/2, center[2] - (radius * Math.sin(currentRadians)), 1));
+                    currentRadians += radianIncrement;
+                }
+
+                // Connect all bottom "circle" sides together
+                for (let j = sides; j < 2*sides - 1; j++) {
+                    model.edges.push([j, j + 1]);
+                }
+                model.edges.push([2*sides - 1, sides]);
+
+                // Connect top circle to bottom circle
+                for (let j = 0; j < sides; j++) {
+                    model.edges.push([j, sides + j]);
+                }
+
+                if (scene.models[i].hasOwnProperty('animation')) {
+                    model.animation = JSON.parse(JSON.stringify(scene.models[i].animation));
+                }
+            } else if (model.type === "sphere") {
+                model.vertices = [];
+                model.edges = [];
+
+                let center = scene.models[i].center;
+                let radius = scene.models[i].radius;
+                let slices = scene.models[i].slices; // Same as number of sides for each stack
+                let stacks = scene.models[i].stacks; // Number of "circles" that make up the sphere
+
+                if (slices < 3 || stacks < 3) {
+                    console.log("Invalid circle slices and/or stacks. Both must be at least 3.");
+                    break;
+                }
+
+                model.center = CG.Vector3(center[0], center[1], center[2]);
+
+                // The radius follows r*sin(theta) as you go up and down the stacks
+                // The horizontal_increment is just the height/stacks
+                // Then with a defined radius the x,y,z are:
+                //  x = center.x + radius
+                //  y = center.y + horizontal_increment
+                //  z = center.z + radius*cos(theta)
+
+                // Create all the sphere's vertices
+                for (let j = 0; j < stacks - 1; j++) {
+                    let radiusRadianIncrement = Math.PI * ((j + 1) / stacks);
+                    for (let k = 0; k < slices; k++) {
+                        let radianIncrement = 2 * Math.PI * (k / slices);
+                        model.vertices.push(CG.Vector4(
+                            center[0] + radius*Math.sin(radiusRadianIncrement)*Math.cos(radianIncrement), 
+                            center[1] + radius*Math.cos(radiusRadianIncrement), 
+                            center[2] + radius*Math.sin(radiusRadianIncrement)*Math.sin(radianIncrement),
+                            1));
+                    }
+                }
+
+                // Create edges between all stack vertices
+                for (let j = 0; j < stacks - 2; j++) {
+                    for (let k = 0; k < slices; k++) {
+                        model.edges.push([j * stacks + k, (j+1) * stacks + k]);
+                    }   
+                }
+
+                // Create inner edges of all stacks
+                for (let j = 0; j < stacks - 1; j++) {
+                    for (let k = 0; k < slices - 1; k++) {
+                        model.edges.push([j * slices + k, j * slices + k + 1]);
+                    }
+                    model.edges.push([j * slices + slices - 1, j * slices]);
+                }
+
+                // Create the north and south poles
+                model.vertices.push(CG.Vector4(center[0], center[1] + radius, center[2], 1));
+                model.vertices.push(CG.Vector4(center[0], center[1] - radius, center[2], 1));
+
+                // Connect first and last stack to north and south poles respectively
+                for (let j = 0; j < slices; j++) {
+                    model.edges.push([model.vertices.length - 2, j]);
+                    model.edges.push([model.vertices.length - 1, model.vertices.length - 3 - j]);
+                }
+
+                if (scene.models[i].hasOwnProperty('animation')) {
+                    model.animation = JSON.parse(JSON.stringify(scene.models[i].animation));
+                }
+
+            } else {
+                model.center = CG.Vector4(scene.models[i].center[0],
                                     scene.models[i].center[1],
                                     scene.models[i].center[2],
                                     1);
