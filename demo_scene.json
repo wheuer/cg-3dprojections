@@ -1,0 +1,166 @@
+{
+    "view": {
+        "prp": [0, 5, 0],
+        "srp": [0, 5, -40],
+        "vup": [0, 1, 0],
+        "clip": [-12, 6, -12, 6, 10, 100]
+    },
+    "models": [
+        {
+            "type": "generic",
+            "vertices": [
+                [ 0.0,  0.0, -30.0],
+                [20.0,  0.0, -30.0],
+                [20.0, 12.0, -30.0],
+                [10.0, 20.0, -30.0],
+                [ 0.0, 12.0, -30.0],
+                [ 0.0,  0.0, -60.0],
+                [20.0,  0.0, -60.0],
+                [20.0, 12.0, -60.0],
+                [10.0, 20.0, -60.0],
+                [ 0.0, 12.0, -60.0]
+            ],
+            "edges": [
+                [0, 1, 2, 3, 4, 0],
+                [5, 6, 7, 8, 9, 5],
+                [0, 5],
+                [1, 6],
+                [2, 7],
+                [3, 8],
+                [4, 9]
+            ]
+        },
+        {
+            "type": "cube",
+            "center": [-20, 5, -40], 
+            "width": 10,
+            "height": 10,
+            "depth": 10,
+            "animation": {
+                "axis": "x",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "cube",
+            "center": [-40, 5, -30], 
+            "width": 10,
+            "height": 10,
+            "depth": 20,
+            "animation": {
+                "axis": "y",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "cube",
+            "center": [-40, 10, -10], 
+            "width": 10,
+            "height": 20,
+            "depth": 10,
+            "animation": {
+                "axis": "y",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "cone",
+            "center": [30, 5, -40], 
+            "radius": 5,
+            "height": 10,
+            "sides": 10,
+            "animation": {
+                "axis": "x",
+                "rps": 0.75
+            }
+        },
+        {
+            "type": "cone",
+            "center": [40, 3, -30], 
+            "radius": 5,
+            "height": 5,
+            "sides": 10,
+            "animation": {
+                "axis": "y",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "cone",
+            "center": [55, 10, -15], 
+            "radius": 10,
+            "height": 20,
+            "sides": 10,
+            "animation": {
+                "axis": "z",
+                "rps": 1
+            }
+        },
+        {
+            "type": "cylinder",
+            "center": [30, 5, 10], 
+            "radius": 5,
+            "height": 10,
+            "sides": 10,
+            "animation": {
+                "axis": "x",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "cylinder",
+            "center": [15, 3, 15], 
+            "radius": 3,
+            "height": 5,
+            "sides": 10,
+            "animation": {
+                "axis": "y",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "cylinder",
+            "center": [5, 3, 15], 
+            "radius": 3,
+            "height": 3,
+            "sides": 10,
+            "animation": {
+                "axis": "z",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "sphere",
+            "center": [-5, 3, 15], 
+            "radius": 3,
+            "slices": 3,
+            "stacks": 3,
+            "animation": {
+                "axis": "x",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "sphere",
+            "center": [-10, 3, 10], 
+            "radius": 3,
+            "slices": 3,
+            "stacks": 3,
+            "animation": {
+                "axis": "y",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "sphere",
+            "center": [-15, 3, 5], 
+            "radius": 3,
+            "slices": 3,
+            "stacks": 3,
+            "animation": {
+                "axis": "z",
+                "rps": 0.5
+            }
+        }
+    ]
+}
